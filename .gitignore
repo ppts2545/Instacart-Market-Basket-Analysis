@@ -1,0 +1,28 @@
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS/editor noise
+.DS_Store
+
+# Data policy:
+# - Ignore all raw/processed datasets by default
+# - Allow only sample files to be committed
+data/raw/**
+data/processed/**
+
+# Keep only sample datasets (any file containing "sample")
+!data/raw/*sample*
+!data/processed/
+!data/processed/**/
+!data/processed/*sample*
+!data/processed/**/*sample*
+
+# Optional placeholders for empty folders
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/processed/quality/.gitkeep

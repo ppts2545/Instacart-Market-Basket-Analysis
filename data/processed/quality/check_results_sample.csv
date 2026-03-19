@@ -1,0 +1,16 @@
+check_type,table,column,status,invalid_count,severity,detail
+RANGE,orders,order_number,PASS,0,major,"expected between [1, 100.0]"
+FK_COVERAGE,order_products_train,order_id,PASS,0,critical,order_products_train.order_id in orders.order_id = 100.0000%
+PK_UNIQUENESS,aisles,aisle_id,PASS,0,major,"non_null=134, unique_non_null=134, rows=134"
+PK_UNIQUENESS,orders,order_id,PASS,0,critical,"non_null=3421083, unique_non_null=3421083, rows=3421083"
+RANGE,orders,order_hour_of_day,PASS,0,major,"expected between [0, 23]"
+RANGE,orders,order_dow,PASS,0,major,"expected between [0, 6]"
+PK_UNIQUENESS,departments,department_id,PASS,0,major,"non_null=21, unique_non_null=21, rows=21"
+ALLOWED_SET,order_products_prior,reordered,PASS,0,major,"allowed=[0, 1]"
+RANGE,order_products_prior,add_to_cart_order,PASS,0,major,"expected between [1, 145.0]"
+FK_COVERAGE,order_products_prior,product_id,PASS,0,critical,order_products_prior.product_id in products.product_id = 100.0000%
+FK_COVERAGE,order_products_train,product_id,PASS,0,critical,order_products_train.product_id in products.product_id = 100.0000%
+ALLOWED_SET,order_products_train,reordered,PASS,0,major,"allowed=[0, 1]"
+PK_UNIQUENESS,products,product_id,PASS,0,critical,"non_null=49688, unique_non_null=49688, rows=49688"
+RANGE,order_products_train,add_to_cart_order,PASS,0,major,"expected between [1, 80.0]"
+FK_COVERAGE,order_products_prior,order_id,PASS,0,critical,order_products_prior.order_id in orders.order_id = 100.0000%

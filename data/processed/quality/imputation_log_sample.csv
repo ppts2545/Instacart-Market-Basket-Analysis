@@ -1,0 +1,2 @@
+table,column,fill_value,missing_before,missing_after,filled_count,reason
+orders,days_since_prior_order,0,206209,0,206209,First order has no prior order; fill with 0 for model compatibility.

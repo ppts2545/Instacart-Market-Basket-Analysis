@@ -1,0 +1,7 @@
+table,missing_before,missing_after,filled_cells
+products,0,0,0
+order_products_prior,0,0,0
+order_products_train,0,0,0
+departments,0,0,0
+orders,206209,0,206209
+aisles,0,0,0
