@@ -21,7 +21,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--config",
         type=Path,
-        default=Path("config/quality_rules.json"),
+        default=Path("configs/quality_rules.json"),
         help="Path to quality rules config file.",
     )
     return parser.parse_args()

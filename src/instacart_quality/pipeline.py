@@ -266,6 +266,95 @@ def compute_summary(checks_df: pd.DataFrame) -> pd.Series:
     )
 
 
+def create_relational_samples(
+    tables: dict[str, pd.DataFrame],
+    output_dir: Path,
+    sample_size: int = 1000,
+    random_state: int = 42,
+) -> dict[str, pd.DataFrame]:
+    """
+    Create relational samples maintaining referential integrity.
+
+    Steps:
+    1. Sample order_ids from Orders table (PRIMARY)
+    2. Filter Order_Products tables by sampled order_ids (CHILD)
+    3. Filter Products by product_ids in Order_Products (CHILD)
+    4. Filter Aisles and Departments by referenced IDs (DIMENSION)
+
+    Args:
+        tables: Dictionary of DataFrames
+        output_dir: Directory to write sample files
+        sample_size: Number of orders to sample
+        random_state: For reproducibility
+
+    Returns:
+        Dictionary of sampled DataFrames
+    """
+    # Step 1: Sample order_ids from Orders (PRIMARY)
+    sampled_orders = tables["orders"].sample(n=sample_size, random_state=random_state)
+    sampled_order_ids = set(sampled_orders["order_id"].unique())
+
+    # Step 2: Filter Order_Products by sampled order_ids (CHILD)
+    sampled_order_products_prior = (
+        tables["order_products_prior"][
+            tables["order_products_prior"]["order_id"].isin(sampled_order_ids)
+        ]
+        .reset_index(drop=True)
+    )
+    sampled_order_products_train = (
+        tables["order_products_train"][
+            tables["order_products_train"]["order_id"].isin(sampled_order_ids)
+        ]
+        .reset_index(drop=True)
+    )
+
+    # Step 3: Get product_ids from sampled order_products
+    sampled_product_ids = set()
+    sampled_product_ids.update(sampled_order_products_prior["product_id"].unique())
+    sampled_product_ids.update(sampled_order_products_train["product_id"].unique())
+
+    # Step 4: Filter Products by sampled product_ids (CHILD)
+    sampled_products = (
+        tables["products"][tables["products"]["product_id"].isin(sampled_product_ids)]
+        .reset_index(drop=True)
+    )
+
+    # Step 5: Get dimension IDs from sampled products
+    sampled_aisle_ids = set(sampled_products["aisle_id"].dropna().unique())
+    sampled_dept_ids = set(sampled_products["department_id"].dropna().unique())
+
+    # Step 6: Filter Aisles and Departments (DIMENSIONS)
+    sampled_aisles = (
+        tables["aisles"][tables["aisles"]["aisle_id"].isin(sampled_aisle_ids)]
+        .reset_index(drop=True)
+    )
+    sampled_departments = (
+        tables["departments"][tables["departments"]["department_id"].isin(sampled_dept_ids)]
+        .reset_index(drop=True)
+    )
+
+    # Step 7: Write all samples
+    samples = {
+        "orders": sampled_orders,
+        "order_products_prior": sampled_order_products_prior,
+        "order_products_train": sampled_order_products_train,
+        "products": sampled_products,
+        "aisles": sampled_aisles,
+        "departments": sampled_departments,
+    }
+
+    for name, df in samples.items():
+        # Write as _sample.csv
+        file_path = output_dir / f"{name}_sample.csv"
+        df.to_csv(file_path, index=False)
+        
+        # Also write as _clean_sample.csv for backward compatibility with notebooks
+        file_path_clean_sample = output_dir / f"{name}_clean_sample.csv"
+        df.to_csv(file_path_clean_sample, index=False)
+
+    return samples
+
+
 def run_data_quality_pipeline(raw_dir: Path, output_dir: Path, config_path: Path) -> dict[str, Any]:
     raw_dir = raw_dir.resolve()
     output_dir = output_dir.resolve()
@@ -315,6 +404,9 @@ def run_data_quality_pipeline(raw_dir: Path, output_dir: Path, config_path: Path
 
     for table_name, df in clean_tables.items():
         df.to_csv(output_dir / f"{table_name}_clean.csv", index=False)
+
+    # Create relational samples from clean tables
+    create_relational_samples(clean_tables, output_dir, sample_size=1000)
 
     return {
         "output_dir": str(output_dir),
