@@ -26,3 +26,6 @@ data/processed/**
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 !data/processed/quality/.gitkeep
+
+# Notebook-local generated datasets/exports
+notebooks/**/data/**

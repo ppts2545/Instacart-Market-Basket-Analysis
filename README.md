@@ -56,6 +56,35 @@ Pipeline generates:
 - summary_kpi.csv
 - *_clean.csv for each input table (full cleaned data)
 - *_sample.csv for each table (relational samples with referential integrity)
+- customer_cumulative_reorder_clean.csv (full feature table, local use)
+- customer_cumulative_reorder_sample.csv and customer_cumulative_reorder_clean_sample.csv
+
+## Professional Git Workflow (Full Local, Sample Push)
+
+Use full data locally for analysis, then regenerate and commit sample artifacts only.
+
+1. Run full pipeline locally
+
+python scripts/run_data_quality.py
+
+2. Regenerate relational sample set + feature sample
+
+python scripts/create_relational_samples.py --sample-size 1000
+
+3. Stage code + notebooks + sample files
+
+git add src scripts notebooks
+git add data/raw/*sample*.csv
+git add data/processed/**/*sample*.csv
+
+4. Verify no full dataset is staged
+
+git status --short
+
+If full data was tracked in the past, untrack it once (keeps local files):
+
+git rm -r --cached data/raw/*.csv data/processed/**/*.csv
+git add data/raw/*sample*.csv data/processed/**/*sample*.csv
 
 ## Customize Rules
 

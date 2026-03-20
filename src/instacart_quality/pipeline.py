@@ -15,6 +15,35 @@ RAW_FILES = {
 }
 
 
+def build_customer_cumulative_reorder_feature(
+    orders_df: pd.DataFrame,
+    order_products_prior_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Create cumulative reorder-per-customer feature on prior-order line items."""
+    feature_df = order_products_prior_df.merge(
+        orders_df[["order_id", "user_id", "order_number"]],
+        on="order_id",
+        how="left",
+    )
+    feature_df = feature_df.sort_values(
+        ["user_id", "order_number", "add_to_cart_order"]
+    ).reset_index(drop=True)
+    feature_df["cumulative_reorder_per_customer"] = (
+        feature_df.groupby("user_id")["reordered"].cumsum()
+    )
+    return feature_df[
+        [
+            "order_id",
+            "user_id",
+            "order_number",
+            "product_id",
+            "add_to_cart_order",
+            "reordered",
+            "cumulative_reorder_per_customer",
+        ]
+    ]
+
+
 def load_rules(config_path: Path) -> dict[str, Any]:
     with config_path.open("r", encoding="utf-8") as f:
         return json.load(f)
@@ -405,8 +434,32 @@ def run_data_quality_pipeline(raw_dir: Path, output_dir: Path, config_path: Path
     for table_name, df in clean_tables.items():
         df.to_csv(output_dir / f"{table_name}_clean.csv", index=False)
 
+    # Save full feature table (ignored by git by default)
+    cumulative_feature_full = build_customer_cumulative_reorder_feature(
+        clean_tables["orders"],
+        clean_tables["order_products_prior"],
+    )
+    cumulative_feature_full.to_csv(
+        output_dir / "customer_cumulative_reorder_clean.csv",
+        index=False,
+    )
+
     # Create relational samples from clean tables
-    create_relational_samples(clean_tables, output_dir, sample_size=1000)
+    sample_tables = create_relational_samples(clean_tables, output_dir, sample_size=1000)
+
+    # Save sample feature table (tracked by git)
+    cumulative_feature_sample = build_customer_cumulative_reorder_feature(
+        sample_tables["orders"],
+        sample_tables["order_products_prior"],
+    )
+    cumulative_feature_sample.to_csv(
+        output_dir / "customer_cumulative_reorder_sample.csv",
+        index=False,
+    )
+    cumulative_feature_sample.to_csv(
+        output_dir / "customer_cumulative_reorder_clean_sample.csv",
+        index=False,
+    )
 
     return {
         "output_dir": str(output_dir),

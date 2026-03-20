@@ -15,6 +15,35 @@ from pathlib import Path
 import pandas as pd
 
 
+def build_customer_cumulative_reorder_feature(
+    orders_df: pd.DataFrame,
+    order_products_prior_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Create cumulative reorder-per-customer feature on prior-order line items."""
+    feature_df = order_products_prior_df.merge(
+        orders_df[["order_id", "user_id", "order_number"]],
+        on="order_id",
+        how="left",
+    )
+    feature_df = feature_df.sort_values(
+        ["user_id", "order_number", "add_to_cart_order"]
+    ).reset_index(drop=True)
+    feature_df["cumulative_reorder_per_customer"] = (
+        feature_df.groupby("user_id")["reordered"].cumsum()
+    )
+    return feature_df[
+        [
+            "order_id",
+            "user_id",
+            "order_number",
+            "product_id",
+            "add_to_cart_order",
+            "reordered",
+            "cumulative_reorder_per_customer",
+        ]
+    ]
+
+
 def create_relational_samples(
     raw_dir: Path,
     output_dir: Path,
@@ -126,8 +155,8 @@ def create_relational_samples(
     print("\nStep 9: Writing sample files...")
     samples = {
         "orders": sampled_orders,
-        "order_products__prior": sampled_order_products_prior,
-        "order_products__train": sampled_order_products_train,
+        "order_products_prior": sampled_order_products_prior,
+        "order_products_train": sampled_order_products_train,
         "products": sampled_products,
         "aisles": sampled_aisles,
         "departments": sampled_departments,
@@ -143,6 +172,21 @@ def create_relational_samples(
         df.to_csv(file_path_clean_sample, index=False)
         
         print(f"  ✓ {file_path.name} & {file_path_clean_sample.name} ({len(df):,} rows)")
+
+    # Step 9.1: Build and write cumulative reorder feature sample
+    cumulative_feature = build_customer_cumulative_reorder_feature(
+        sampled_orders,
+        sampled_order_products_prior,
+    )
+    feature_path = output_dir / "customer_cumulative_reorder_sample.csv"
+    feature_clean_path = output_dir / "customer_cumulative_reorder_clean_sample.csv"
+    cumulative_feature.to_csv(feature_path, index=False)
+    cumulative_feature.to_csv(feature_clean_path, index=False)
+    print(
+        "  ✓ "
+        f"{feature_path.name} & {feature_clean_path.name} "
+        f"({len(cumulative_feature):,} rows)"
+    )
 
     # Step 10: Validate relational integrity
     print("\nStep 10: Validating relational integrity...")
