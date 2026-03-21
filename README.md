@@ -31,6 +31,59 @@ python scripts/run_data_quality.py
 
 python scripts/run_data_quality.py --raw-dir data/raw --output-dir data/processed/quality --config configs/quality_rules.json
 
+## Project Map (Recommended Working Structure)
+
+Use this map to avoid mixing objectives and keep notebooks maintainable.
+
+- 01_Data_Understanding: schema, data dictionary, quality overview
+- 02_Exploratory_Data_Analysis:
+	- customer behavior (frequency, reorder, basket size)
+	- product/category trend (product_name, aisle, department)
+	- customer x product bridge (segment-to-category relationship)
+- 03_Modeling: feature set freeze, train/validation workflow, model evaluation
+
+Rule of thumb:
+
+- One notebook = one business question
+- Shared logic (loading, merges, reusable feature steps) belongs in `src/`
+- Notebook should focus on interpretation, not long ETL code
+
+## Data Workflow (What To Do With Data)
+
+Follow this fixed lifecycle:
+
+1. Keep source files only in `data/raw`
+2. Run `python scripts/run_data_quality.py`
+3. Analyze from `data/processed/quality` only
+4. Save visuals/tables to `reports/figures` and `reports/tables`
+
+Data layer meaning:
+
+- `data/raw`: immutable source inputs
+- `data/interim`: optional temporary joins/feature drafts
+- `data/processed/quality`: standardized cleaned tables + quality artifacts
+
+### Notebook Data Loading Standard
+
+Use package helper functions instead of hardcoded relative paths.
+
+```python
+from instacart_quality import load_eda_base
+
+USE_SAMPLE = True
+tables = load_eda_base(use_sample=USE_SAMPLE)
+
+orders = tables["orders"]
+order_products = tables["order_products_prior"]
+products = tables["products"]
+```
+
+Benefits:
+
+- no fragile `../../../` path logic
+- same loading logic across all notebooks
+- easy switch between sample and full data with one flag
+
 ## About Sample Data
 
 The pipeline automatically creates **relational samples** that preserve referential integrity:
