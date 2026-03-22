@@ -4,6 +4,8 @@ from typing import Any
 
 import pandas as pd
 
+from .features import run_feature_engineering_pipeline
+
 
 RAW_FILES = {
     "orders": "orders.csv",
@@ -384,7 +386,12 @@ def create_relational_samples(
     return samples
 
 
-def run_data_quality_pipeline(raw_dir: Path, output_dir: Path, config_path: Path) -> dict[str, Any]:
+def run_data_quality_pipeline(
+    raw_dir: Path,
+    output_dir: Path,
+    config_path: Path,
+    export_reports: bool = True,
+) -> dict[str, Any]:
     raw_dir = raw_dir.resolve()
     output_dir = output_dir.resolve()
     config_path = config_path.resolve()
@@ -423,16 +430,30 @@ def run_data_quality_pipeline(raw_dir: Path, output_dir: Path, config_path: Path
 
     summary_kpi = compute_summary(checks_df)
 
-    profile_df.to_csv(output_dir / "table_profile.csv", index=False)
-    missing_df.to_csv(output_dir / "column_missing.csv", index=False)
-    checks_df.to_csv(output_dir / "check_results.csv", index=False)
-    issue_register.to_csv(output_dir / "issue_register.csv", index=False)
-    imputation_df.to_csv(output_dir / "imputation_log.csv", index=False)
-    missing_comparison.to_csv(output_dir / "missing_comparison_before_after.csv", index=False)
-    summary_kpi.to_frame(name="value").to_csv(output_dir / "summary_kpi.csv")
+    if export_reports:
+        profile_df.to_csv(output_dir / "table_profile.csv", index=False)
+        missing_df.to_csv(output_dir / "column_missing.csv", index=False)
+        checks_df.to_csv(output_dir / "check_results.csv", index=False)
+        issue_register.to_csv(output_dir / "issue_register.csv", index=False)
+        imputation_df.to_csv(output_dir / "imputation_log.csv", index=False)
+        missing_comparison.to_csv(output_dir / "missing_comparison_before_after.csv", index=False)
+        summary_kpi.to_frame(name="value").to_csv(output_dir / "summary_kpi.csv")
 
     for table_name, df in clean_tables.items():
         df.to_csv(output_dir / f"{table_name}_clean.csv", index=False)
+
+    project_root = next(
+        (
+            candidate
+            for candidate in [output_dir, *output_dir.parents]
+            if (candidate / "src").exists() and (candidate / "data").exists()
+        ),
+        None,
+    )
+    if project_root is None:
+        raise FileNotFoundError(
+            f"Could not resolve project root from output directory: {output_dir}"
+        )
 
     # Save full feature table (ignored by git by default)
     cumulative_feature_full = build_customer_cumulative_reorder_feature(
@@ -461,8 +482,18 @@ def run_data_quality_pipeline(raw_dir: Path, output_dir: Path, config_path: Path
         index=False,
     )
 
+    full_feature_result = run_feature_engineering_pipeline(
+        use_sample=False,
+        project_root=project_root,
+    )
+    sample_feature_result = run_feature_engineering_pipeline(
+        use_sample=True,
+        project_root=project_root,
+    )
+
     return {
         "output_dir": str(output_dir),
+        "export_reports": bool(export_reports),
         "total_checks": int(summary_kpi["total_checks"]),
         "pass_checks": int(summary_kpi["pass_checks"]),
         "fail_checks": int(summary_kpi["fail_checks"]),
@@ -470,4 +501,6 @@ def run_data_quality_pipeline(raw_dir: Path, output_dir: Path, config_path: Path
         "critical_failures": int(summary_kpi["critical_failures"]),
         "major_failures": int(summary_kpi["major_failures"]),
         "issues_count": int(len(issue_register)),
+        "full_feature_dir": full_feature_result["feature_dir"],
+        "sample_feature_dir": sample_feature_result["feature_dir"],
     }

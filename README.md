@@ -31,6 +31,10 @@ python scripts/run_data_quality.py
 
 python scripts/run_data_quality.py --raw-dir data/raw --output-dir data/processed/quality --config configs/quality_rules.json
 
+4. Clean-only mode (keep only cleaned datasets)
+
+python scripts/run_data_quality.py --clean-only
+
 ## Project Map (Recommended Working Structure)
 
 Use this map to avoid mixing objectives and keep notebooks maintainable.
@@ -111,6 +115,9 @@ Pipeline generates:
 - *_sample.csv for each table (relational samples with referential integrity)
 - customer_cumulative_reorder_clean.csv (full feature table, local use)
 - customer_cumulative_reorder_sample.csv and customer_cumulative_reorder_clean_sample.csv
+
+If you only want cleaned outputs, run with `--clean-only`.
+In that mode, report files (table_profile, checks, issue_register, etc.) are skipped.
 
 ## Professional Git Workflow (Full Local, Sample Push)
 

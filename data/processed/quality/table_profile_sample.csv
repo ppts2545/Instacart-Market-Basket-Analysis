@@ -1,7 +1,0 @@
-table,rows,cols,memory_mb,duplicate_rows,missing_cells,missing_pct_cells
-products,49688,4,4.93,0,0,0.0
-departments,21,2,0.0,0,0,0.0
-order_products_prior,32434489,4,989.82,0,0,0.0
-aisles,134,2,0.01,0,0,0.0
-order_products_train,1384617,4,42.26,0,0,0.0
-orders,3421083,7,332.71,0,206209,0.8611

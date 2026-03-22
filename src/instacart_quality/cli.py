@@ -24,6 +24,11 @@ def parse_args() -> argparse.Namespace:
         default=Path("configs/quality_rules.json"),
         help="Path to quality rules config file.",
     )
+    parser.add_argument(
+        "--clean-only",
+        action="store_true",
+        help="Export only cleaned tables and cleaned feature tables (skip QA report artifacts).",
+    )
     return parser.parse_args()
 
 
@@ -33,6 +38,7 @@ def main() -> None:
         raw_dir=args.raw_dir,
         output_dir=args.output_dir,
         config_path=args.config,
+        export_reports=not args.clean_only,
     )
 
     print("Data quality pipeline completed")
