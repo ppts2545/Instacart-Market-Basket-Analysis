@@ -39,12 +39,9 @@ python scripts/run_data_quality.py --clean-only
 
 Use this map to avoid mixing objectives and keep notebooks maintainable.
 
-- 01_Data_Understanding: schema, data dictionary, quality overview
-- 02_Exploratory_Data_Analysis:
 	- customer behavior (frequency, reorder, basket size)
 	- product/category trend (product_name, aisle, department)
 	- customer x product bridge (segment-to-category relationship)
-- 03_Modeling: feature set freeze, train/validation workflow, model evaluation
 
 Rule of thumb:
 
@@ -91,32 +88,19 @@ Benefits:
 ## About Sample Data
 
 The pipeline automatically creates **relational samples** that preserve referential integrity:
-
-- Primary table (Orders) is sampled first (1000 rows by default)
-- Child tables (Order_Products) are filtered by sampled order_ids
 - Dimension tables (Products, Aisles, Departments) are filtered by what's referenced
 
-**Result:** All foreign key constraints are maintained ✓
-
-See [docs/RELATIONAL_SAMPLING.md](docs/RELATIONAL_SAMPLING.md) for details.
 
 ## Output Artifacts
-
-Pipeline generates:
-
-- table_profile.csv
 - column_missing.csv
 - check_results.csv
 - issue_register.csv
 - imputation_log.csv
 - missing_comparison_before_after.csv
-- summary_kpi.csv
-- *_clean.csv for each input table (full cleaned data)
 - *_sample.csv for each table (relational samples with referential integrity)
 - customer_cumulative_reorder_clean.csv (full feature table, local use)
 - customer_cumulative_reorder_sample.csv and customer_cumulative_reorder_clean_sample.csv
 
-If you only want cleaned outputs, run with `--clean-only`.
 In that mode, report files (table_profile, checks, issue_register, etc.) are skipped.
 
 ## Professional Git Workflow (Full Local, Sample Push)
