@@ -1,0 +1,7 @@
+dataset,column,profile_type,n_unique,missing_pct,top_1,top_1_pct,top_10_coverage_pct
+customer_cumulative_reorder,reordered,binary,2,0.0,1,58.877,100.0
+orders,order_dow,discrete,7,0.0,0,17.564,100.0
+prior_enriched,reordered,binary,2,0.0,1,58.966,100.0
+prior_enriched,order_dow,discrete,7,0.0,0,19.14,100.0
+train_enriched,reordered,binary,2,0.0,1,59.859,100.0
+train_enriched,order_dow,discrete,7,0.0,0,23.402,100.0

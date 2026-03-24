@@ -1,0 +1,7 @@
+left_table,right_table,join_key,left_rows,matched_rows,unmatched_rows,match_rate_pct,note
+order_products_prior,orders,order_id,32434489,32434489,0,100.0,ok
+order_products_train,orders,order_id,1384617,1384617,0,100.0,ok
+order_products_prior,products,product_id,32434489,32434489,0,100.0,ok
+order_products_train,products,product_id,1384617,1384617,0,100.0,ok
+products,aisles,aisle_id,49688,49688,0,100.0,ok
+products,departments,department_id,49688,49688,0,100.0,ok

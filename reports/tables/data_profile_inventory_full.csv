@@ -1,0 +1,8 @@
+table,rows,columns,memory_mb,duplicate_rows,duplicate_pct,status
+aisles,134,2,0.01,0,0.0,loaded
+customer_cumulative_reorder,32434489,7,1732.19,0,0.0,loaded
+departments,21,2,0.0,0,0.0,loaded
+order_products_prior,32434489,4,989.82,0,0.0,loaded
+order_products_train,1384617,4,42.26,0,0.0,loaded
+orders,3421083,7,332.71,0,0.0,loaded
+products,49688,4,4.94,0,0.0,loaded
