@@ -29,3 +29,7 @@ data/processed/**
 
 # Notebook-local generated datasets/exports
 notebooks/**/data/**
+
+# Notebook intermediate cache artifacts
+data/interim/notebook_cache/**
+!data/interim/notebook_cache/.gitkeep
