@@ -235,7 +235,7 @@ def load_customer_behavior_data(
     pd.DataFrame
         Enriched dataframe with columns:
         - order dates (calculated from orders_with_dates.csv)
-        - product names and metadata
+        - product names and metadata, including aisle and department
         - computed fields: total_price, cumulative_reorder_per_customer
     """
     root = project_root.resolve() if project_root else resolve_project_root()
@@ -244,7 +244,7 @@ def load_customer_behavior_data(
     order_products = load_quality_table(
         "order_products_prior", use_sample=use_sample, project_root=root
     )
-    products = load_quality_table("products", use_sample=use_sample, project_root=root)
+    product_dim = load_product_dimension(use_sample=use_sample, project_root=root)
     
     # Load canonical feature artifact and auto-generate it if missing.
     orders_path = ensure_feature_table(
@@ -259,8 +259,9 @@ def load_customer_behavior_data(
     # Merge order_products with orders (to get dates)
     df = order_products.merge(orders, on="order_id", how="left")
     
-    # Merge with products (to get product name)
-    df = df.merge(products[["product_id", "product_name"]], on="product_id", how="left")
+    # Merge with the full product dimension so downstream notebook cells can
+    # analyze both aisle- and department-level behavior.
+    df = df.merge(product_dim, on="product_id", how="left")
     
     # Add computed columns
     df["total_price"] = 1  # Proxy for monetary value (item count)

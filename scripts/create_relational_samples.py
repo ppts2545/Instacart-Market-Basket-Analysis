@@ -10,38 +10,18 @@ Usage:
 """
 
 import argparse
+import sys
 from pathlib import Path
 
 import pandas as pd
 
+# Ensure src/ is importable when running the script directly.
+_SCRIPT_DIR = Path(__file__).resolve().parent
+_SRC_DIR = _SCRIPT_DIR.parent / "src"
+if str(_SRC_DIR) not in sys.path:
+    sys.path.insert(0, str(_SRC_DIR))
 
-def build_customer_cumulative_reorder_feature(
-    orders_df: pd.DataFrame,
-    order_products_prior_df: pd.DataFrame,
-) -> pd.DataFrame:
-    """Create cumulative reorder-per-customer feature on prior-order line items."""
-    feature_df = order_products_prior_df.merge(
-        orders_df[["order_id", "user_id", "order_number"]],
-        on="order_id",
-        how="left",
-    )
-    feature_df = feature_df.sort_values(
-        ["user_id", "order_number", "add_to_cart_order"]
-    ).reset_index(drop=True)
-    feature_df["cumulative_reorder_per_customer"] = (
-        feature_df.groupby("user_id")["reordered"].cumsum()
-    )
-    return feature_df[
-        [
-            "order_id",
-            "user_id",
-            "order_number",
-            "product_id",
-            "add_to_cart_order",
-            "reordered",
-            "cumulative_reorder_per_customer",
-        ]
-    ]
+from instacart_quality.features import build_customer_cumulative_reorder_feature  # noqa: E402
 
 
 def create_relational_samples(
@@ -54,6 +34,7 @@ def create_relational_samples(
     Create relational samples from Instacart data.
 
     Steps:
+
     1. Sample order_ids from Orders table (PRIMARY)
     2. Filter Order_Products tables by sampled order_ids (CHILD)
     3. Filter Products by product_ids found in sampled Order_Products (CHILD)

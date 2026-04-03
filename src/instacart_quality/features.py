@@ -46,9 +46,10 @@ def build_customer_product_reorder_count(
     )
 
     feature = (
-        base.groupby(["user_id", "product_id"], as_index=False)["reordered"]
+        base.groupby(["user_id", "product_id"])["reordered"]
         .sum()
-        .rename(columns={"reordered": "reorder_count"})
+        .rename("reorder_count")
+        .reset_index()
     )
 
     if products_df is not None and "product_name" in products_df.columns:
@@ -58,6 +59,35 @@ def build_customer_product_reorder_count(
             how="left",
         )
     return feature
+
+
+def build_customer_cumulative_reorder_feature(
+    orders_df: pd.DataFrame,
+    order_products_prior_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Create cumulative reorder-per-customer feature on prior-order line items."""
+    feature_df = order_products_prior_df.merge(
+        orders_df[["order_id", "user_id", "order_number"]],
+        on="order_id",
+        how="left",
+    )
+    feature_df = feature_df.sort_values(
+        ["user_id", "order_number", "add_to_cart_order"]
+    ).reset_index(drop=True)
+    feature_df["cumulative_reorder_per_customer"] = (
+        feature_df.groupby("user_id")["reordered"].cumsum()
+    )
+    return feature_df[
+        [
+            "order_id",
+            "user_id",
+            "order_number",
+            "product_id",
+            "add_to_cart_order",
+            "reordered",
+            "cumulative_reorder_per_customer",
+        ]
+    ]
 
 
 def run_feature_engineering_pipeline(

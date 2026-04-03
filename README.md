@@ -39,9 +39,29 @@ python scripts/run_data_quality.py --clean-only
 
 Use this map to avoid mixing objectives and keep notebooks maintainable.
 
-	- customer behavior (frequency, reorder, basket size)
-	- product/category trend (product_name, aisle, department)
-	- customer x product bridge (segment-to-category relationship)
+### Notebook Flow Index
+
+01_Data_Understanding
+
+- `01_data_overview.ipynb`: initial raw table inventory and quick profiling
+- `02_data_understanding.ipynb`: deeper schema understanding and initial joins
+- `04_data_quality.ipynb`: canonical raw-data quality checks
+- `04b_processed_data_quality.ipynb`: processed artifact quality validation
+- `05_feature_engineer.ipynb`: feature engineering experiments
+
+02_Exploratory_Data_Analysis
+
+- `00_eda_setup.ipynb`: shared EDA setup and merged base distribution overview
+- `01_univariate_analysis.ipynb`: single-variable distribution checks
+- `02a_customer_kpi_segments.ipynb`: customer KPI baseline and segmentation analysis
+- `02b_customer_retention_clv.ipynb`: retention, churn, and CLV analysis
+- `02c_customer_trends_diagnostics.ipynb`: trend deep dives and diagnostics
+- `03_product_category_trends.ipynb`: product/category directional trends
+- `04_customer_product_bridge.ipynb`: customer segment to category bridge
+
+Legacy notebook retained for reference:
+
+- `02_customer_behavior.ipynb`: original monolithic notebook before split
 
 Rule of thumb:
 

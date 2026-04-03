@@ -4,7 +4,7 @@ from typing import Any
 
 import pandas as pd
 
-from .features import run_feature_engineering_pipeline
+from .features import build_customer_cumulative_reorder_feature, run_feature_engineering_pipeline
 
 
 RAW_FILES = {
@@ -15,35 +15,6 @@ RAW_FILES = {
     "aisles": "aisles.csv",
     "departments": "departments.csv",
 }
-
-
-def build_customer_cumulative_reorder_feature(
-    orders_df: pd.DataFrame,
-    order_products_prior_df: pd.DataFrame,
-) -> pd.DataFrame:
-    """Create cumulative reorder-per-customer feature on prior-order line items."""
-    feature_df = order_products_prior_df.merge(
-        orders_df[["order_id", "user_id", "order_number"]],
-        on="order_id",
-        how="left",
-    )
-    feature_df = feature_df.sort_values(
-        ["user_id", "order_number", "add_to_cart_order"]
-    ).reset_index(drop=True)
-    feature_df["cumulative_reorder_per_customer"] = (
-        feature_df.groupby("user_id")["reordered"].cumsum()
-    )
-    return feature_df[
-        [
-            "order_id",
-            "user_id",
-            "order_number",
-            "product_id",
-            "add_to_cart_order",
-            "reordered",
-            "cumulative_reorder_per_customer",
-        ]
-    ]
 
 
 def load_rules(config_path: Path) -> dict[str, Any]:
