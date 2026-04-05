@@ -20,15 +20,24 @@ def build_orders_with_dates(
     orders_df: pd.DataFrame,
     snapshot_date: pd.Timestamp | str = "2015-07-01",
 ) -> pd.DataFrame:
-    """Build order-level dates from days_since_prior_order per user."""
+    """Build order-level dates from `days_since_prior_order` per user.
+
+    The Instacart source data does not include a true order timestamp, so we
+    back-calculate dates by anchoring each user's most recent order to the
+    provided `snapshot_date`. This preserves the chronological meaning of
+    `order_number`, where 1 is the earliest order and the maximum order number
+    is the latest order.
+    """
     snapshot = pd.Timestamp(snapshot_date)
     orders_sorted = orders_df.sort_values(["user_id", "order_number"]).reset_index(drop=True)
     orders_sorted["days_since_prior_order"] = orders_sorted["days_since_prior_order"].fillna(0)
     orders_sorted["cumulative_days"] = (
         orders_sorted.groupby("user_id")["days_since_prior_order"].cumsum()
     )
+
+    max_cumulative_days = orders_sorted.groupby("user_id")["cumulative_days"].transform("max")
     orders_sorted["order_date"] = snapshot - pd.to_timedelta(
-        orders_sorted["cumulative_days"], unit="D"
+        max_cumulative_days - orders_sorted["cumulative_days"], unit="D"
     )
     return orders_sorted
 
